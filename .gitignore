@@ -3,3 +3,4 @@ dataset/
 yolo-weight/
 models/
 mask_rcnn_tf2/
+fundamental_image_processing_computer_vision_python/01_getting_started/data/
