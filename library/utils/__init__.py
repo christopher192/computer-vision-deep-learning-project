@@ -1,1 +1,0 @@
-from .tf_annotation import TFAnnotation
