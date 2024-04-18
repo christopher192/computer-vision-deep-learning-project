@@ -2,3 +2,6 @@ __pycache__
 dataset
 .ipynb_checkpoints
 model_checkpoint
+.vscode
+**/checkpoint/
+**/model/
