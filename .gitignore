@@ -5,3 +5,5 @@ model_checkpoint
 .vscode
 **/checkpoint/
 **/model/
+**/easyocr/
+**/trainer/
