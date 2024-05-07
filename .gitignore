@@ -5,5 +5,8 @@ model_checkpoint
 .vscode
 **/checkpoint/
 **/model/
+**/scripted_model/
 **/easyocr/
 **/trainer/
+**/mlruns/
+mlflow.db
