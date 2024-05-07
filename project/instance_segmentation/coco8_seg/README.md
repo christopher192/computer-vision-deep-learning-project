@@ -3,7 +3,7 @@
 ## <ins>Introduction</ins>
 This repository focuses on performing instance segmentation on a subset of the COCO dataset, specifically known as COCO 8. The COCO 8 dataset is chosen to expedite the development of other important features. 
 
-## <ins>Technology/Implementation</ins>
+## <ins>Technology/ Implementation</ins>
 - The instance segmentation model is built using Torchvision's Mask RCNN FPN v2, leveraging pretrained weights.
 - MLflow and Prefect will be used to serve for experiment tracking and orchestration.
 
