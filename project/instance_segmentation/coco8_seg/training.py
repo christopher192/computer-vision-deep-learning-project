@@ -115,6 +115,7 @@ def train_model(l_train_loader, l_train_dataset, l_val_loader, l_val_dataset):
         scripted_model = torch.jit.script(model)
         mlflow.pytorch.log_model(scripted_model, scripted_model_path, pip_requirements = pip_requirements)
         mlflow.pytorch.save_model(scripted_model, scripted_model_path, pip_requirements = pip_requirements)
+
 @flow
 def init_flow():
     l_train_loader, l_train_dataset, l_val_loader, l_val_dataset = load_dataset()
