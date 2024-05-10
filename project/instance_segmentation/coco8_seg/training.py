@@ -4,7 +4,6 @@ import shutil
 import mlflow
 from utils import training_loader, validation_loader
 from utils import load_maskrcnn_resnet50_fpn_v2
-from utils import print_auto_logged_info
 from prefect import flow, task
 
 @task
@@ -19,10 +18,8 @@ def load_dataset():
     )
     return load_training_loader, load_training_dataset, load_validation_loader, load_validation_dataset
 
-@flow
-def start_training():
-    l_train_loader, l_train_dataset, l_val_loader, l_val_dataset = load_dataset()
-
+@task
+def train_model(l_train_loader, l_train_dataset, l_val_loader, l_val_dataset):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model = load_maskrcnn_resnet50_fpn_v2()
@@ -118,8 +115,10 @@ def start_training():
         scripted_model = torch.jit.script(model)
         mlflow.pytorch.log_model(scripted_model, scripted_model_path, pip_requirements = pip_requirements)
         mlflow.pytorch.save_model(scripted_model, scripted_model_path, pip_requirements = pip_requirements)
-
-    print_auto_logged_info(mlflow.get_run(run_id = run.info.run_id))
+@flow
+def init_flow():
+    l_train_loader, l_train_dataset, l_val_loader, l_val_dataset = load_dataset()
+    train_model(l_train_loader, l_train_dataset, l_val_loader, l_val_dataset)
 
 if __name__ == "__main__":
-    start_training()
+    init_flow()

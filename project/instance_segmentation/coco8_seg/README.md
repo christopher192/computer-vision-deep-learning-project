@@ -10,9 +10,11 @@ This repository focuses on performing instance segmentation on a subset of the C
 ## <ins>MLflow</ins>
 <ins>Start interface</ins>
 <br>
-Execute below command to interacting with MLflow.
+Execute below command to interacting with MLflow server.
 <br>
-`mlflow ui --backend-store-uri sqlite:///mlflow.db`
+```
+mlflow ui --backend-store-uri sqlite:///mlflow.db
+```
 
 <ins>Log/ save model</ins>
 <br>
@@ -26,6 +28,15 @@ pip install pynvml # for GPU metric
 ```
 ```
 os.environ["MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING"] = "true"
+```
+
+## <ins>Prefect</ins>
+<ins>Start interface</ins>
+<br>
+Execute below command to interacting with Prefect server.
+<br>
+```
+prefect server start
 ```
 
 ## <ins>Issue/ Challenge</ins>
