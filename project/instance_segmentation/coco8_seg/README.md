@@ -1,7 +1,7 @@
 # COCO 8 - Instance Segmentation
 
 ## <ins>Introduction</ins>
-This repository focuses on performing instance segmentation on a subset of the COCO dataset, specifically known as COCO 8. The COCO 8 dataset is chosen to expedite the development of other important features. 
+This repository focuses on performing instance segmentation on a subset of the COCO dataset, specifically known as COCO 8. The COCO 8 dataset is chosen to expedite the development of other important features.
 
 ## <ins>Technology/ Implementation</ins>
 - The instance segmentation model is built using Torchvision's Mask RCNN FPN v2, leveraging pretrained weight.
@@ -10,7 +10,7 @@ This repository focuses on performing instance segmentation on a subset of the C
 ## <ins>MLflow</ins>
 <ins>Start interface</ins>
 <br>
-Execute below command to interacting with MLflow server.
+Execute below command to interact with MLflow server.
 <br>
 ```
 mlflow ui --backend-store-uri sqlite:///mlflow.db
@@ -33,10 +33,36 @@ os.environ["MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING"] = "true"
 ## <ins>Prefect</ins>
 <ins>Start interface</ins>
 <br>
-Execute below command to interacting with Prefect server.
+Execute below command to interact with Prefect server.
 <br>
 ```
 prefect server start
+```
+
+<ins>Follow these steps to start orchestration</ins>
+<br>
+Create work pool.
+<br>
+```
+prefect work-pool create --type process inst-seg
+```
+
+Deploy workflow.
+<br>
+```
+prefect deploy training.py:init_flow --name inst-seg-run --pool inst-seg
+```
+
+Workflow deployment.
+<br>
+```
+prefect deployment run 'init-flow/inst-seg-run'
+```
+
+Start work pool.
+<br>
+```
+prefect worker start --pool "inst-seg"
 ```
 
 ## <ins>Issue/ Challenge</ins>

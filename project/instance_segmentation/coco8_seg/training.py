@@ -20,6 +20,10 @@ def load_dataset():
 
 @task
 def train_model(l_train_loader, l_train_dataset, l_val_loader, l_val_dataset):
+    mlflow_tracking_url = "sqlite:///mlflow.db"
+    mlflow.set_tracking_uri(mlflow_tracking_url)
+    mlflow.set_experiment("coco8-instance-seg")
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model = load_maskrcnn_resnet50_fpn_v2()
