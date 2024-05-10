@@ -121,6 +121,5 @@ def start_training():
 
     print_auto_logged_info(mlflow.get_run(run_id = run.info.run_id))
 
-
 if __name__ == "__main__":
     start_training()
