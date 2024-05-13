@@ -1,11 +1,12 @@
 # COCO 8 - Instance Segmentation
 
 ## <ins>Introduction</ins>
-This repository focuses on performing instance segmentation on a subset of the COCO dataset, specifically known as COCO 8. The COCO 8 dataset is chosen to expedite the development of other important features.
+This repository focuses on performing instance segmentation on a subset of the COCO dataset, specifically known as COCO 8. The COCO 8 dataset is chosen to expedite the development of other important features. Based on current state of implementation, the MLOps maturity of this repository stands at level 2. To delve deeper into the concept of MLOps maturity, please visit [Microsoft's Guide on MLOps Maturity Model](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/mlops-maturity-model).
 
 ## <ins>Technology/ Implementation</ins>
 - The instance segmentation model is built using Torchvision's Mask RCNN FPN v2, leveraging pretrained weight.
-- MLflow and Prefect will be used to serve for experiment tracking and orchestration.
+- MLflow will be used to serve for experiment tracking. 
+- Prefect for orchestration.
 
 ## <ins>MLflow</ins>
 <ins>Start interface</ins>
@@ -70,6 +71,19 @@ Start work pool.
 ```
 prefect worker start --pool "inst-seg"
 ```
+
+## <ins>Prefect Schedule Type</ins>
+When deploying the flow, there are 3 types of schedules to choose from:
+
+- `Cron`: This is a time-based job scheduler that uses cron expressions to schedule flows. For instance, a cron string of `"0 0 * * *"` schedules the flow to run daily at midnight.
+
+- `Interval`: This allows for running a flow at regular intervals. By specifying the interval as a duration, Prefect runs the flow each time that duration passes. For instance, an interval schedule with a duration of one hour runs the flow every hour.
+
+- `RRule`: This stands for "Recurrence Rule" and is a format for specifying recurring events. RRules can create more complex schedules such as calendar logic for simple recurring schedules, irregular intervals, exclusions, or day-of-month adjustments. For instance, an RRule can schedule a flow to run at 9am on every weekday.
+
+## <ins>Instruction</ins>
+
+## <ins>Result</ins>
 
 ## <ins>Issue/ Challenge</ins>
 `mlflow==2.12.1` currently support `torch==2.1.2+cu118` and `torchvision==0.16.2+cu118`.
