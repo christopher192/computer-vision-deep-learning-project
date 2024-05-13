@@ -47,6 +47,12 @@ Create work pool.
 prefect work-pool create --type process inst-seg
 ```
 
+Initialize a local project.
+<br>
+```
+prefect init --recipe local
+```
+
 Deploy workflow.
 <br>
 ```
