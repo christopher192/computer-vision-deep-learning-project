@@ -1,3 +1,4 @@
+import os
 import gc
 import torch
 import shutil
@@ -5,6 +6,8 @@ import mlflow
 from utils import training_loader, validation_loader
 from utils import load_maskrcnn_resnet50_fpn_v2
 from prefect import flow, task
+
+os.environ["MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING"] = "true"
 
 @task
 def load_dataset():

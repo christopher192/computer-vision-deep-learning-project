@@ -13,4 +13,4 @@ if __name__ == "__main__":
     client = MlflowClient(tracking_uri = mlflow_tracking_url)
     experiment_id = get_experiment_id(client, 'coco8-instance-seg')
 
-    
+    print(experiment_id)
