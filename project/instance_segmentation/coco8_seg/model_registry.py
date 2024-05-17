@@ -32,12 +32,17 @@ def register_model(experiment_name, mlflow_tracking_url, model_register_name):
         print(f"{run_id} is already registered at {model_register_name}")
     else:
         # register
-        mlflow.set_tracking_uri(mlflow_tracking_url)
-        mlflow.set_experiment(experiment_name)
+        # mlflow.set_tracking_uri(mlflow_tracking_url)
+        # mlflow.set_experiment(experiment_name)
 
-        mlflow.register_model(
-            model_uri = model_uri, 
-            name = model_register_name
+        # mlflow.register_model(
+        #     model_uri = model_uri, 
+        #     name = model_register_name
+        # )
+        client.create_model_version(
+            name = model_register_name,
+            source = model_uri, 
+            run_id = run_id
         )
 
 @task
