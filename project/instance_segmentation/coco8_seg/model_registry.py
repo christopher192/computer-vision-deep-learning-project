@@ -10,7 +10,7 @@ def get_experiment_id(client, name):
         if exp.name == name:
             return exp.experiment_id
 
-@task
+@task(retries = 3, retry_delay_seconds = 2)
 def register_model(experiment_name, mlflow_tracking_url, model_register_name):
     client = MlflowClient(tracking_uri = mlflow_tracking_url)
     experiment_id = get_experiment_id(client, experiment_name)
@@ -45,7 +45,7 @@ def register_model(experiment_name, mlflow_tracking_url, model_register_name):
             run_id = run_id
         )
 
-@task
+@task(retries = 3, retry_delay_seconds = 2)
 def staging_transition(mlflow_tracking_url, model_register_name):
     client = MlflowClient(tracking_uri = mlflow_tracking_url)
 
@@ -72,8 +72,11 @@ def staging_transition(mlflow_tracking_url, model_register_name):
             description = f"The model version {info['version']} was transitioned to {new_stage} on {date}"
         )
 
+# Production transition by comparing Stagging models
+# to be continued...
+
 @flow
-def init_flow():
+def init_model_registry_flow():
     mlflow_tracking_url = "sqlite:///mlflow.db"
     experiment_name = "coco8-instance-seg"
     model_register_name = "coco8-inst-detection"
@@ -83,4 +86,4 @@ def init_flow():
     staging_transition(mlflow_tracking_url, model_register_name)
 
 if __name__ == "__main__":
-    init_flow()
+    init_model_registry_flow()

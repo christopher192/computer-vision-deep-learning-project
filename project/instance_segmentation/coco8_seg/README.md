@@ -57,13 +57,13 @@ prefect init --recipe local
 Deploy workflow.
 <br>
 ```
-prefect deploy training.py:init_flow --name inst-seg-run --pool inst-seg
+prefect deploy training.py:init_training_flow --name inst-seg-run --pool inst-seg
 ```
 
 Workflow deployment.
 <br>
 ```
-prefect deployment run 'init-flow/inst-seg-run'
+prefect deployment run 'init-training-flow/inst-seg-run'
 ```
 
 Start work pool.
@@ -83,34 +83,46 @@ When deploying the flow, there are 3 types of schedules to choose from:
 
 ## <ins>Instruction</ins>
 Follow these steps to execute the COCO-8 instance segmentation project:
-1. Start MLflow server.
-    ```
-    mlflow ui --backend-store-uri sqlite:///mlflow.db
-    ```
-2. Start Prefect server.
-    ```
-    prefect server start
-    ```
-3. Initialize Prefect project.
-    ```
-    prefect init --recipe local
-    ```
-4. Deploy `training.py` workflow: Ensure that already set up selected worker pool in Prefect.
-    <br>
-    ```
-    prefect deploy training.py:init_flow --name inst-seg-run --pool inst-seg
-    ```
-5. Workflow deployment.
-    <br>
-    ```
-    prefect deployment run 'init-flow/inst-seg-run'
-    ```
-6. Start work pool.
-    <br>
-    ```
-    prefect worker start --pool "inst-seg"
-    ```
+
+Step 1. Start MLflow server.
+<br>
+```
+mlflow ui --backend-store-uri sqlite:///mlflow.db
+```
+Step 2. Start Prefect server.
+<br>
+```
+prefect server start
+```
+Step 3. Initialize Prefect project.
+<br>
+```
+prefect init --recipe local
+```
+Step 4. Deploy `training.py` and `model_registry.py` workflow: Ensure that already set up selected worker pool in Prefect.
+<br>
+```
+prefect deploy training.py:init_training_flow --name inst-seg-run --pool inst-seg
+prefect deploy model_registry.py:init_model_registry_flow --name model-registry-run --pool inst-seg
+```
+Step 5. Workflow deployment.
+<br>
+```
+prefect deployment run 'init-training-flow/inst-seg-run'
+prefect deployment run 'init-model-registry-flow/model-registry-run'
+```
+Step 6. Start work pool.
+<br>
+```
+prefect worker start --pool "inst-seg"
+```
 ## <ins>Result</ins>
+
+MLflow experiment tracking result.
+![alt text](image/mlflow.png)
+
+Prefect result.
+![alt text](image/prefect.png)
 
 ## <ins>Issue/ Challenge</ins>
 `mlflow==2.12.1` currently support `torch==2.1.2+cu118` and `torchvision==0.16.2+cu118`.

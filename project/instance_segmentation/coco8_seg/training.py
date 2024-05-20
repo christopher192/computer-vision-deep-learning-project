@@ -3,7 +3,7 @@ import gc
 import torch
 import shutil
 import mlflow
-import datetime
+from datetime import datetime
 from utils import training_loader, validation_loader
 from utils import load_maskrcnn_resnet50_fpn_v2, get_iou_types
 from utils import evaluation_loss_map, save_loss_curve
@@ -11,7 +11,7 @@ from prefect import flow, task
 
 os.environ["MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING"] = "true"
 
-@task
+@task(retries = 3, retry_delay_seconds = 2)
 def load_dataset():
     load_training_loader, load_training_dataset = training_loader(
         rootPath = "../../../dataset/coco8-seg/train/images", 
@@ -23,7 +23,7 @@ def load_dataset():
     )
     return load_training_loader, load_training_dataset, load_validation_loader, load_validation_dataset
 
-@task
+@task(retries = 3, retry_delay_seconds = 2)
 def train_model(l_train_loader, l_train_dataset, l_val_loader, l_val_dataset):
     mlflow_tracking_url = "sqlite:///mlflow.db"
     mlflow.set_tracking_uri(mlflow_tracking_url)
@@ -47,7 +47,7 @@ def train_model(l_train_loader, l_train_dataset, l_val_loader, l_val_dataset):
         for param in model.parameters():
             param.requires_grad = True
 
-    num_epochs = 15
+    num_epochs = 10
     selected_keys = ['boxes', 'labels', 'masks']
     iou_types = get_iou_types(model)
     cpu_device = torch.device("cpu")
@@ -199,9 +199,9 @@ def train_model(l_train_loader, l_train_dataset, l_val_loader, l_val_dataset):
         mlflow.log_artifact(f"result/{dir_name}/loss_plot.png", artifact_path = "loss_plot")
 
 @flow
-def init_flow():
+def init_training_flow():
     l_train_loader, l_train_dataset, l_val_loader, l_val_dataset = load_dataset()
     train_model(l_train_loader, l_train_dataset, l_val_loader, l_val_dataset)
 
 if __name__ == "__main__":
-    init_flow()
+    init_training_flow()
