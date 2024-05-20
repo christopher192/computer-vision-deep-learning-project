@@ -121,7 +121,7 @@ prefect worker start --pool "inst-seg"
 MLflow experiment tracking result.
 ![alt text](image/mlflow.png)
 
-Prefect result.
+Prefect orchestration result.
 ![alt text](image/prefect.png)
 
 ## <ins>Issue/ Challenge</ins>
