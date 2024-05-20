@@ -89,3 +89,19 @@ When deploying the flow, there are 3 types of schedules to choose from:
 `mlflow==2.12.1` currently support `torch==2.1.2+cu118` and `torchvision==0.16.2+cu118`.
 
 `mlflow.pytorch` appears to have compatibility with PyTorch Lightning instead of Torchvision, additional code for MLflow need to be worked with Torchvision.
+
+## <ins>To-Do List</ins>
+| No | Task                                              | Complete |
+| --- | ------------------------------------------------- | ---- |
+| 1 | Validation loss | <input type="checkbox" disabled checked /> |
+| 2 | COCO evaluation | <input type="checkbox" disabled checked /> |
+| 3 | Confusion matrix/ metric | <input type="checkbox" disabled /> |
+| 4 | Precision recall curve | <input type="checkbox" disabled /> |
+| 5 | Precision confidence curve | <input type="checkbox" disabled /> |
+| 6 | Recall confidence curve | <input type="checkbox" disabled /> |
+| 7 | F1 confidence curve | <input type="checkbox" disabled /> |
+| 8 | Early stopping | <input type="checkbox" disabled /> |
+| 9 | Fitness evaluation metric | <input type="checkbox" disabled /> |
+| 10 | `Production` transition by comparing `Stagging` models | <input type="checkbox" disabled /> |
+| 11 | Soft-dice Loss | <input type="checkbox" disabled /> |
+| 12 | Dice coefficient metric | <input type="checkbox" disabled /> |
