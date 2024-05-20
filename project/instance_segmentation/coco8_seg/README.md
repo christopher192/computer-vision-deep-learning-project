@@ -31,6 +31,15 @@ pip install pynvml # for GPU metric
 os.environ["MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING"] = "true"
 ```
 
+<ins>Model registry</ins>
+<br>
+For storing and versioning trained machine learning models. It also facilitates the transition of models through various stages such as `none`, `staging`, `production`, and `archive`.
+
+- `none` > Initial stage.
+- `staging` > Move model when it's ready for testing or review.
+- `production` > Move model that has been tested and reviewed and is ready to be used for making actual predictions in a live application.
+- `archive` > When model version is no longer in use, you can move it to this stage.
+
 ## <ins>Prefect</ins>
 <ins>Start interface</ins>
 <br>
