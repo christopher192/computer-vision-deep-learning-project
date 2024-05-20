@@ -24,7 +24,7 @@ The difference between `mlflow.pytorch.log_model()` and `mlflow.pytorch.save_mod
 <ins>System metric</ins>
 <br>
 ```
-pip install psutil
+pip install psutil # for CPU metric. If it is already installed, skip.
 pip install pynvml # for GPU metric
 ```
 ```
@@ -82,7 +82,34 @@ When deploying the flow, there are 3 types of schedules to choose from:
 - `RRule`: This stands for "Recurrence Rule" and is a format for specifying recurring events. RRules can create more complex schedules such as calendar logic for simple recurring schedules, irregular intervals, exclusions, or day-of-month adjustments. For instance, an RRule can schedule a flow to run at 9am on every weekday.
 
 ## <ins>Instruction</ins>
-
+Follow these steps to execute the COCO-8 instance segmentation project:
+1. Start MLflow server.
+    ```
+    mlflow ui --backend-store-uri sqlite:///mlflow.db
+    ```
+2. Start Prefect server.
+    ```
+    prefect server start
+    ```
+3. Initialize Prefect project.
+    ```
+    prefect init --recipe local
+    ```
+4. Deploy `training.py` workflow: Ensure that already set up selected worker pool in Prefect.
+    <br>
+    ```
+    prefect deploy training.py:init_flow --name inst-seg-run --pool inst-seg
+    ```
+5. Workflow deployment.
+    <br>
+    ```
+    prefect deployment run 'init-flow/inst-seg-run'
+    ```
+6. Start work pool.
+    <br>
+    ```
+    prefect worker start --pool "inst-seg"
+    ```
 ## <ins>Result</ins>
 
 ## <ins>Issue/ Challenge</ins>
