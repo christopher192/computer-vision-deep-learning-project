@@ -93,15 +93,15 @@ When deploying the flow, there are 3 types of schedules to choose from:
 ## <ins>To-Do List</ins>
 | No | Task                                              | Complete |
 | --- | ------------------------------------------------- | ---- |
-| 1 | Validation loss | <input type="checkbox" disabled checked /> |
-| 2 | COCO evaluation | <input type="checkbox" disabled checked /> |
-| 3 | Confusion matrix/ metric | <input type="checkbox" disabled /> |
-| 4 | Precision recall curve | <input type="checkbox" disabled /> |
-| 5 | Precision confidence curve | <input type="checkbox" disabled /> |
-| 6 | Recall confidence curve | <input type="checkbox" disabled /> |
-| 7 | F1 confidence curve | <input type="checkbox" disabled /> |
-| 8 | Early stopping | <input type="checkbox" disabled /> |
-| 9 | Fitness evaluation metric | <input type="checkbox" disabled /> |
-| 10 | `Production` transition by comparing `Stagging` models | <input type="checkbox" disabled /> |
-| 11 | Soft-dice Loss | <input type="checkbox" disabled /> |
-| 12 | Dice coefficient metric | <input type="checkbox" disabled /> |
+| 1 | Validation loss | &#10004; |
+| 2 | COCO evaluation | &#10004; |
+| 3 | Confusion matrix/ metric | &cross; |
+| 4 | Precision recall curve | &cross; |
+| 5 | Precision confidence curve | &cross; |
+| 6 | Recall confidence curve | &cross; |
+| 7 | F1 confidence curve | &cross; |
+| 8 | Early stopping | &cross; |
+| 9 | Fitness evaluation metric | &cross; |
+| 10 | `Production` transition by comparing `Stagging` models | &cross; |
+| 11 | Soft-dice Loss | &cross; |
+| 12 | Dice coefficient metric | &cross; |
