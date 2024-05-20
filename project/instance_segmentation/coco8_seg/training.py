@@ -3,8 +3,10 @@ import gc
 import torch
 import shutil
 import mlflow
+import datetime
 from utils import training_loader, validation_loader
-from utils import load_maskrcnn_resnet50_fpn_v2
+from utils import load_maskrcnn_resnet50_fpn_v2, get_iou_types
+from utils import evaluation_loss_map, save_loss_curve
 from prefect import flow, task
 
 os.environ["MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING"] = "true"
@@ -45,7 +47,26 @@ def train_model(l_train_loader, l_train_dataset, l_val_loader, l_val_dataset):
         for param in model.parameters():
             param.requires_grad = True
 
+    num_epochs = 15
     selected_keys = ['boxes', 'labels', 'masks']
+    iou_types = get_iou_types(model)
+    cpu_device = torch.device("cpu")
+
+    result = {
+        "total_train_loss": [],
+        "total_val_loss": [],
+        "total_train_loss_classifier": [],
+        "total_val_loss_classifier": [],
+        "total_train_loss_box_reg": [],
+        "total_val_loss_box_reg": [],
+        "total_train_loss_mask": [],
+        "total_val_loss_mask": [],
+        "total_train_loss_objectness": [],
+        "total_val_loss_objectness": [],
+        "total_train_loss_rpn_box_reg": [],
+        "total_val_loss_rpn_box_reg": []
+    }
+
     pip_requirements = [
         'torch==2.1.2+cu118',
         'torchvision==0.16.2+cu118'
@@ -74,9 +95,15 @@ def train_model(l_train_loader, l_train_dataset, l_val_loader, l_val_dataset):
 
         mlflow.log_param("unfreeze_all_layer", unfreeze_all_layer)
 
-        for epoch in range(5):
+        for epoch in range(num_epochs):
             model.train()
+
             train_loss = 0.0
+            train_loss_classifier = 0.0
+            train_loss_box_reg = 0.0
+            train_loss_mask = 0.0
+            train_loss_objectness = 0.0
+            train_loss_rpn_box_reg = 0.0
 
             for batch_idx, (images, targets) in enumerate(l_train_loader):
                 images = list(image.to(device) for image in images)
@@ -90,16 +117,57 @@ def train_model(l_train_loader, l_train_dataset, l_val_loader, l_val_dataset):
                 optimizer.step()
 
                 train_loss += loss.item()
+                train_loss_classifier += loss_dict["loss_classifier"].item()
+                train_loss_box_reg += loss_dict["loss_box_reg"].item()
+                train_loss_mask += loss_dict["loss_mask"].item()
+                train_loss_objectness += loss_dict["loss_objectness"].item()
+                train_loss_rpn_box_reg += loss_dict["loss_rpn_box_reg"].item()
 
                 del images, targets, loss_dict
                 gc.collect()
+
+            val_loss_result = evaluation_loss_map(model, l_val_dataset, l_val_loader, 
+                selected_keys, device, iou_types, cpu_device)
 
             torch.cuda.empty_cache()
             gc.collect()
 
             total_train_loss = train_loss / len(l_train_loader)
+            total_train_loss_classifier = train_loss_classifier / len(l_train_loader)
+            total_train_loss_box_reg = train_loss_box_reg / len(l_train_loader)
+            total_train_loss_mask = train_loss_mask / len(l_train_loader)
+            total_train_loss_objectness = train_loss_objectness / len(l_train_loader)
+            total_train_loss_rpn_box_reg = train_loss_rpn_box_reg / len(l_train_loader)
 
-            mlflow.log_metric("total_train_loss", total_train_loss, step = (epoch + 1))
+            # log training loss
+            mlflow.log_metric("total_train_loss", total_train_loss, step = epoch)
+            mlflow.log_metric("train_loss_classifier", total_train_loss_classifier, step = epoch)
+            mlflow.log_metric("train_loss_box_reg", total_train_loss_box_reg, step = epoch)
+            mlflow.log_metric("train_loss_mask", total_train_loss_mask, step = epoch)
+            mlflow.log_metric("train_loss_objectness", total_train_loss_objectness, step = epoch)
+            mlflow.log_metric("train_loss_rpn_box_reg", total_train_loss_rpn_box_reg, step = epoch)
+
+            # log validation loss
+            mlflow.log_metric("total_val_loss", val_loss_result["total_val_loss"], step = epoch)
+            mlflow.log_metric("val_loss_classifier", val_loss_result["total_val_loss_classifier"], step = epoch)
+            mlflow.log_metric("val_loss_box_reg", val_loss_result["total_val_loss_box_reg"], step = epoch)
+            mlflow.log_metric("val_loss_mask", val_loss_result["total_val_loss_mask"], step = epoch)
+            mlflow.log_metric("val_loss_objectness", val_loss_result["total_val_loss_objectness"], step = epoch)
+            mlflow.log_metric("val_loss_rpn_box_reg", val_loss_result["total_val_loss_rpn_box_reg"], step = epoch)
+
+            result["total_train_loss"].append(total_train_loss)
+            result["total_train_loss_classifier"].append(total_train_loss_classifier)
+            result["total_train_loss_box_reg"].append(total_train_loss_box_reg)
+            result["total_train_loss_mask"].append(total_train_loss_mask)
+            result["total_train_loss_objectness"].append(total_train_loss_objectness)
+            result["total_train_loss_rpn_box_reg"].append(total_train_loss_rpn_box_reg)
+
+            result["total_val_loss"].append(val_loss_result["total_val_loss"])
+            result["total_val_loss_classifier"].append(val_loss_result["total_val_loss_classifier"])
+            result["total_val_loss_box_reg"].append(val_loss_result["total_val_loss_box_reg"])
+            result["total_val_loss_mask"].append(val_loss_result["total_val_loss_mask"])
+            result["total_val_loss_objectness"].append(val_loss_result["total_val_loss_objectness"])
+            result["total_val_loss_rpn_box_reg"].append(val_loss_result["total_val_loss_rpn_box_reg"])
 
             base_dir = "model_checkpoint"
             checkpoint_path = f"{base_dir}/epoch_{epoch + 1}"
@@ -122,6 +190,13 @@ def train_model(l_train_loader, l_train_dataset, l_val_loader, l_val_dataset):
         scripted_model = torch.jit.script(model)
         mlflow.pytorch.log_model(scripted_model, scripted_model_path, pip_requirements = pip_requirements)
         mlflow.pytorch.save_model(scripted_model, scripted_model_path, pip_requirements = pip_requirements)
+
+        now = datetime.now()
+        dir_name = now.strftime("%Y-%m-%d_%H-%M-%S")
+        save_loss_curve(result, dir_name)
+
+        # log artifact for loss curve
+        mlflow.log_artifact(f"result/{dir_name}/loss_plot.png", artifact_path = "loss_plot")
 
 @flow
 def init_flow():

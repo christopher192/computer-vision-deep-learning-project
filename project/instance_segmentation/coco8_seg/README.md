@@ -92,7 +92,7 @@ When deploying the flow, there are 3 types of schedules to choose from:
 
 ## <ins>To-Do List</ins>
 | No | Task                                              | Complete |
-| -- | ------------------------------------------------- | ---- |
+| --- | ------------------------------------------------- | ---- |
 | 1 | Validation loss | &check; |
 | 2 | COCO evaluation | &check; |
 | 3 | Confusion matrix/ metric | &cross; |
