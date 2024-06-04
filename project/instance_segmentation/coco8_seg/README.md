@@ -5,10 +5,16 @@ This repository focuses on performing instance segmentation on a subset of the C
 
 ## <ins>Technology/ Implementation</ins>
 - The instance segmentation model is built using Torchvision's Mask RCNN FPN v2, leveraging pretrained weight.
-- MLflow will be used to serve for experiment tracking. 
+- MLflow will be used to serve for experiment tracking.
 - Prefect for orchestration.
+- Grafana for visualization & model monitoring.
 
-## <ins>MLflow</ins>
+## <ins>MLOps for Computer Vision Operations (CVOps)</ins>
+It refers to the application of Machine Learning Operations (MLOps) principles and practices to Computer Vision tasks. MLOps is a discipline that combines Machine Learning, Data Engineering, and DevOps. It aims to standardize and streamline the training, deployment, monitoring, and maintenance of machine learning models to ensure reliable and efficient operation.
+
+In the context of Computer Vision, MLOps can involve automating the training, validation, deployment, and updating of models used for tasks such as image classification, object detection, image segmentation, etc. This can help to manage the lifecycle of these models in a systematic and scalable way, reducing manual effort and increasing the speed and quality of deployments.
+
+## <ins>MLflow - Experiment Tracking</ins>
 <ins>Start interface</ins>
 <br>
 Execute below command to interact with MLflow server.
@@ -40,7 +46,7 @@ For storing and versioning trained machine learning models. It also facilitates 
 - `production` > Move model that has been tested and reviewed and is ready to be used for making actual predictions in a live application.
 - `archive` > When model version is no longer in use, you can move it to this stage.
 
-## <ins>Prefect</ins>
+## <ins>Prefect - Orchestration</ins>
 <ins>Start interface</ins>
 <br>
 Execute below command to interact with Prefect server.
@@ -89,6 +95,22 @@ When deploying the flow, there are 3 types of schedules to choose from:
 - `Interval`: This allows for running a flow at regular intervals. By specifying the interval as a duration, Prefect runs the flow each time that duration passes. For instance, an interval schedule with a duration of one hour runs the flow every hour.
 
 - `RRule`: This stands for "Recurrence Rule" and is a format for specifying recurring events. RRules can create more complex schedules such as calendar logic for simple recurring schedules, irregular intervals, exclusions, or day-of-month adjustments. For instance, an RRule can schedule a flow to run at 9am on every weekday.
+
+## <ins>Grafana - Model Monitoring</ins>
+Unsupervised Monitoring Metrics
+- Input image width and height
+- Image ratio distribution
+- Image area distribution
+- Inference time
+- AE outlier score
+- KS drift
+
+Supervised Monitoring Metrics
+- Data drift
+- Concept drift
+- Domain shift
+- Prediction drift
+- Upstream drift
 
 ## <ins>Instruction</ins>
 Follow these steps to execute the COCO-8 instance segmentation project:
