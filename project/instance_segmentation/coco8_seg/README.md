@@ -153,3 +153,4 @@ Prefect orchestration result.
 | 10 | `Production` transition by comparing `Stagging` models | &cross; |
 | 11 | Soft-dice Loss | &cross; |
 | 12 | Dice coefficient metric | &cross; |
+| 12 | Model monitoring | &cross; |
