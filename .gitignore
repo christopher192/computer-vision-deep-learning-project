@@ -10,3 +10,4 @@ model_checkpoint
 **/trainer/
 **/mlruns/
 mlflow.db
+data

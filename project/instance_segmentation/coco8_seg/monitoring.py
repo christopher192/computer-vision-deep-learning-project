@@ -25,7 +25,16 @@ from mlflow.tracking import MlflowClient
 # """
 create_table_statement = """
     CREATE TABLE IF NOT EXISTS cv_metrics (
-        timestamp timestamp,
+        timestamp timestamp NOT NULL,
+        image_name VARCHAR(255),
+        image_base64 TEXT,
+        image_metadata JSONB,
+        inference_time FLOAT
+    )
+"""
+create_timescaledb_table_statement = """
+    CREATE TABLE IF NOT EXISTS cv_metrics_timescaledb (
+        timestamp TIMESTAMPTZ NOT NULL,
         image_name VARCHAR(255),
         image_base64 TEXT,
         image_metadata JSONB,
@@ -43,12 +52,21 @@ model_register_name = "coco8-inst-detection"
 stage = "Production"
 
 def prep_database():
+    # connect to the default database (postgres) to check for the cvops database
     with psycopg.connect(f"host = {host} port = {port} user = {user} password = {password}", autocommit = True) as conn:
         res = conn.execute(f"SELECT 1 FROM pg_database WHERE datname = '{database}'")
         if len(res.fetchall()) == 0:
-            conn.execute("CREATE DATABASE cvops;")
+            conn.execute(f"CREATE DATABASE {database};")
+        # connect to the cvops database to create the timescaledb extension
+        with psycopg.connect(f"host = {host} port = {port} dbname = '{database}' user = {user} password = {password}", autocommit = True) as conn:
+            with conn.cursor() as cur:
+                cur.execute("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;")
+        # connect to the cvops database to create the cv_metrics and cv_metrics_timescaledb table
         with psycopg.connect(f"host = {host} port = {port} dbname = {database} user = {user} password = {password}") as conn:
+            # cv_metrics table
             conn.execute(create_table_statement)
+            # cv_metrics_timescaledb table
+            conn.execute(create_timescaledb_table_statement)
 
 def get_image_metadata(image_path):
     with Image.open(image_path) as img:
@@ -104,30 +122,33 @@ def predict_image(image_path, run_id):
 def insert_data(image_name, image_base64, image_metadata, inference_time):
     with psycopg.connect(f"host = {host} port = {port}  dbname = {database} user = {user} password = {password}", autocommit = True) as conn:
         with conn.cursor() as curr:
-            curr.execute("INSERT INTO cv_metrics (timestamp, image_name, image_base64, image_metadata, inference_time) VALUES (%s, %s, %s, %s, %s)", (datetime.now(), image_name, image_base64, json.dumps(image_metadata), inference_time))
+            timestamp = datetime.now()
+            curr.execute("INSERT INTO cv_metrics (timestamp, image_name, image_base64, image_metadata, inference_time) VALUES (%s, %s, %s, %s, %s)", (timestamp, image_name, image_base64, json.dumps(image_metadata), inference_time))
+            curr.execute("INSERT INTO cv_metrics_timescaledb (timestamp, image_name, image_base64, image_metadata, inference_time) VALUES (%s, %s, %s, %s, %s)", (timestamp, image_name, image_base64, json.dumps(image_metadata), inference_time))
 
 @click.command()
 @click.option("--inference_datapath", default = "../../../dataset/coco8-seg/valid/images", help = "location where inference data is stored")
 def initialize(inference_datapath):
     prep_database()
 
-    random_image = random.sample(os.listdir(inference_datapath), 1)
-    image_name = random_image[0]
-    image_metadata = get_image_metadata(image_path = os.path.join(inference_datapath, random_image[0]))
+    for i in range(10):
+        random_image = random.sample(os.listdir(inference_datapath), 1)
+        image_name = random_image[0]
+        image_metadata = get_image_metadata(image_path = os.path.join(inference_datapath, random_image[0]))
 
-    run_id = get_production_run_id()
+        run_id = get_production_run_id()
 
-    if run_id is None:
-        raise Exception("No model in production")
+        if run_id is None:
+            raise Exception("No model in production")
 
-    start_time = time.time()
-    predict_image(image_path = os.path.join(inference_datapath, random_image[0]), run_id = run_id)
-    inference_time = time.time() - start_time
+        start_time = time.time()
+        predict_image(image_path = os.path.join(inference_datapath, random_image[0]), run_id = run_id)
+        inference_time = time.time() - start_time
 
-    insert_data(image_name = image_name, image_base64 = image_metadata["image_base64"], 
-        image_metadata = {k: v for k, v in image_metadata.items() if k != 'image_base64'},
-        inference_time = inference_time
-    )
+        insert_data(image_name = image_name, image_base64 = image_metadata["image_base64"], 
+            image_metadata = {k: v for k, v in image_metadata.items() if k != 'image_base64'},
+            inference_time = inference_time
+        )
 
 if __name__ == '__main__':
     initialize()
