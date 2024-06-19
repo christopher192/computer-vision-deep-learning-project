@@ -165,14 +165,16 @@ Prefect orchestration result.
 | --- | ------------------------------------------------- | ---- |
 | 1 | Validation loss | &check; |
 | 2 | COCO evaluation | &check; |
-| 3 | Confusion matrix/ metric | &cross; |
-| 4 | Precision recall curve | &cross; |
-| 5 | Precision confidence curve | &cross; |
-| 6 | Recall confidence curve | &cross; |
-| 7 | F1 confidence curve | &cross; |
-| 8 | Early stopping | &cross; |
-| 9 | Fitness evaluation metric | &cross; |
-| 10 | `Production` transition by comparing `Stagging` models | &cross; |
-| 11 | Soft-dice Loss | &cross; |
-| 12 | Dice coefficient metric | &cross; |
-| 12 | Model monitoring | &cross; |
+| 3 | Evaluation metrics - Precision, recall, mAP50, mAP50-95 (Bounding box) | &check; |
+| 4 | Evaluation metrics - Precision, recall, mAP50, mAP50-95 (Segmentation) | &cross; |
+| 5 | Confusion matrix/ metric | &cross; |
+| 6 | Precision recall curve | &cross; |
+| 7 | Precision confidence curve | &cross; |
+| 8 | Recall confidence curve | &cross; |
+| 9 | F1 confidence curve | &cross; |
+| 10 | Early stopping | &cross; |
+| 11 | Fitness evaluation metric | &cross; |
+| 12 | `Production` transition by comparing `Stagging` models | &cross; |
+| 13 | Soft-dice Loss | &cross; |
+| 14 | Dice coefficient metric | &cross; |
+| 15 | Model monitoring | &cross; |
