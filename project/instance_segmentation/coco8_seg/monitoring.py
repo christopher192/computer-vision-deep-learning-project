@@ -23,13 +23,15 @@ from mlflow.tracking import MlflowClient
 #         image_metadata JSONB
 #     )
 # """
+
 create_table_statement = """
     CREATE TABLE IF NOT EXISTS cv_metrics (
         timestamp timestamp NOT NULL,
         image_name VARCHAR(255),
         image_base64 TEXT,
         image_metadata JSONB,
-        inference_time FLOAT
+        inference_time FLOAT,
+        prediction_result JSON
     )
 """
 create_timescaledb_table_statement = """
@@ -38,9 +40,11 @@ create_timescaledb_table_statement = """
         image_name VARCHAR(255),
         image_base64 TEXT,
         image_metadata JSONB,
-        inference_time FLOAT
+        inference_time FLOAT,
+        prediction_result JSON
     )
 """
+
 host = "localhost"
 port = "5432"
 user = "postgres"
@@ -119,12 +123,12 @@ def predict_image(image_path, run_id):
 
     return result
 
-def insert_data(image_name, image_base64, image_metadata, inference_time):
+def insert_data(image_name, image_base64, image_metadata, inference_time, prediction_result):
     with psycopg.connect(f"host = {host} port = {port}  dbname = {database} user = {user} password = {password}", autocommit = True) as conn:
         with conn.cursor() as curr:
             timestamp = datetime.now()
-            curr.execute("INSERT INTO cv_metrics (timestamp, image_name, image_base64, image_metadata, inference_time) VALUES (%s, %s, %s, %s, %s)", (timestamp, image_name, image_base64, json.dumps(image_metadata), inference_time))
-            curr.execute("INSERT INTO cv_metrics_timescaledb (timestamp, image_name, image_base64, image_metadata, inference_time) VALUES (%s, %s, %s, %s, %s)", (timestamp, image_name, image_base64, json.dumps(image_metadata), inference_time))
+            curr.execute("INSERT INTO cv_metrics (timestamp, image_name, image_base64, image_metadata, inference_time, prediction_result) VALUES (%s, %s, %s, %s, %s, %s)", (timestamp, image_name, image_base64, json.dumps(image_metadata), inference_time, json.dumps(prediction_result)))
+            curr.execute("INSERT INTO cv_metrics_timescaledb (timestamp, image_name, image_base64, image_metadata, inference_time, prediction_result) VALUES (%s, %s, %s, %s, %s, %s)", (timestamp, image_name, image_base64, json.dumps(image_metadata), inference_time, json.dumps(prediction_result)))
 
 @click.command()
 @click.option("--inference_datapath", default = "../../../dataset/coco8-seg/valid/images", help = "location where inference data is stored")
@@ -142,12 +146,26 @@ def initialize(inference_datapath):
             raise Exception("No model in production")
 
         start_time = time.time()
-        predict_image(image_path = os.path.join(inference_datapath, random_image[0]), run_id = run_id)
+        result = predict_image(image_path = os.path.join(inference_datapath, random_image[0]), run_id = run_id)
         inference_time = time.time() - start_time
+
+        # convert prediction to json for data insertion
+        boxes_json =  json.dumps(result[0]["boxes"].tolist())
+        masks_json =  json.dumps(result[0]["masks"].tolist())
+        labels_json =  json.dumps(result[0]["labels"].tolist())
+        scores_json =  json.dumps(result[0]["scores"].tolist())
+
+        # combine into a single dictionary
+        combined_data = {
+            "boxes": boxes_json,
+            "masks": masks_json,
+            "labels": labels_json,
+            "scores": scores_json
+        }
 
         insert_data(image_name = image_name, image_base64 = image_metadata["image_base64"], 
             image_metadata = {k: v for k, v in image_metadata.items() if k != 'image_base64'},
-            inference_time = inference_time
+            inference_time = inference_time, prediction_result = combined_data
         )
 
 if __name__ == '__main__':
