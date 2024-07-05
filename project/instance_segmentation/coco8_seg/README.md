@@ -97,20 +97,26 @@ When deploying the flow, there are 3 types of schedules to choose from:
 - `RRule`: This stands for "Recurrence Rule" and is a format for specifying recurring events. RRules can create more complex schedules such as calendar logic for simple recurring schedules, irregular intervals, exclusions, or day-of-month adjustments. For instance, an RRule can schedule a flow to run at 9am on every weekday.
 
 ## <ins>Grafana - Model Monitoring</ins>
-Unsupervised Monitoring Metrics
-- Input image width and height
-- Image ratio distribution
-- Image area distribution
-- Inference time
-- AE outlier score
-- KS drift
+Model performance will start degrading after deployment; hence, continuous monitoring is essential.
+<br>
+| No | Unsupervised Monitoring Metrics | Complete |
+| --- | -------- | --- |
+| 1 | Input image width and height | &check; |
+| 2 | Image ratio distribution | &check; |
+| 3 | Image area distribution | &check; |
+| 4 | Inference time | &check; |
+| 5 | UPH | &check; |
+| 6 | Consumed resources (CPU/ GPU) | &check; |
+| 7 | AE outlier score | &cross; |
+| 8 | KS drift | &cross; |
 
-Supervised Monitoring Metrics
-- Data drift
-- Concept drift
-- Domain shift
-- Prediction drift
-- Upstream drift
+| No | Supervised Monitoring Metrics | Complete |
+| --- | -------- | --- |
+| 1 | Data drift | &cross; |
+| 2 | Concept drift | &cross; |
+| 3 | Domain shift | &cross; |
+| 4 | Prediction drift | &cross; |
+| 5 | Upstream drift | &cross; |
 
 ## <ins>Instruction</ins>
 Follow these steps to execute the COCO-8 instance segmentation project:
@@ -149,11 +155,14 @@ prefect worker start --pool "inst-seg"
 ```
 ## <ins>Result</ins>
 
-MLflow experiment tracking result.
+MLflow experiment tracking result
 ![alt text](image/mlflow.png)
 
-Prefect orchestration result.
+Prefect orchestration result
 ![alt text](image/prefect.png)
+
+Grafana model monitoring result
+![alt text](image/grafana.png)
 
 ## <ins>Issue/ Challenge</ins>
 `mlflow==2.12.1` currently support `torch==2.1.2+cu118` and `torchvision==0.16.2+cu118`.

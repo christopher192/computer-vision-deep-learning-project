@@ -7,6 +7,8 @@ import random
 import psycopg
 import base64
 import torch
+import psutil
+import GPUtil
 import numpy as np
 from PIL import Image
 from io import BytesIO
@@ -31,7 +33,9 @@ create_table_statement = """
         image_base64 TEXT,
         image_metadata JSONB,
         inference_time FLOAT,
-        prediction_result JSON
+        prediction_result JSON,
+        cpu_usage FLOAT,
+        gpu_usage FLOAT
     )
 """
 create_timescaledb_table_statement = """
@@ -41,7 +45,9 @@ create_timescaledb_table_statement = """
         image_base64 TEXT,
         image_metadata JSONB,
         inference_time FLOAT,
-        prediction_result JSON
+        prediction_result JSON,
+        cpu_usage FLOAT,
+        gpu_usage FLOAT
     )
 """
 
@@ -102,6 +108,9 @@ def get_production_run_id():
 
     return run_id
 
+def monitor_resources():
+    print("asda")
+
 def predict_image(image_path, run_id):
     mlflow.set_tracking_uri(mlflow_tracking_url)
     model_path = f"runs:/{run_id}/model"
@@ -123,50 +132,84 @@ def predict_image(image_path, run_id):
 
     return result
 
-def insert_data(image_name, image_base64, image_metadata, inference_time, prediction_result):
+def insert_data(image_name, image_base64, image_metadata, inference_time, prediction_result, cpu_usage, gpu_usage):
     with psycopg.connect(f"host = {host} port = {port}  dbname = {database} user = {user} password = {password}", autocommit = True) as conn:
         with conn.cursor() as curr:
             timestamp = datetime.now()
-            curr.execute("INSERT INTO cv_metrics (timestamp, image_name, image_base64, image_metadata, inference_time, prediction_result) VALUES (%s, %s, %s, %s, %s, %s)", (timestamp, image_name, image_base64, json.dumps(image_metadata), inference_time, json.dumps(prediction_result)))
-            curr.execute("INSERT INTO cv_metrics_timescaledb (timestamp, image_name, image_base64, image_metadata, inference_time, prediction_result) VALUES (%s, %s, %s, %s, %s, %s)", (timestamp, image_name, image_base64, json.dumps(image_metadata), inference_time, json.dumps(prediction_result)))
+            curr.execute("INSERT INTO cv_metrics (timestamp, image_name, image_base64, image_metadata, inference_time, prediction_result, cpu_usage, gpu_usage) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (timestamp, image_name, image_base64, json.dumps(image_metadata), inference_time, json.dumps(prediction_result), cpu_usage, gpu_usage))
+            curr.execute("INSERT INTO cv_metrics_timescaledb (timestamp, image_name, image_base64, image_metadata, inference_time, prediction_result, cpu_usage, gpu_usage) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (timestamp, image_name, image_base64, json.dumps(image_metadata), inference_time, json.dumps(prediction_result), cpu_usage, gpu_usage))
 
 @click.command()
 @click.option("--inference_datapath", default = "../../../dataset/coco8-seg/valid/images", help = "location where inference data is stored")
 def initialize(inference_datapath):
     prep_database()
 
-    for i in range(10):
-        random_image = random.sample(os.listdir(inference_datapath), 1)
-        image_name = random_image[0]
-        image_metadata = get_image_metadata(image_path = os.path.join(inference_datapath, random_image[0]))
+    device = torch.device("cuda")
 
-        run_id = get_production_run_id()
+    random_image = random.sample(os.listdir(inference_datapath), 1)
+    image_name = random_image[0]
+    image_metadata = get_image_metadata(image_path = os.path.join(inference_datapath, random_image[0]))
 
-        if run_id is None:
-            raise Exception("No model in production")
+    run_id = get_production_run_id()
 
-        start_time = time.time()
-        result = predict_image(image_path = os.path.join(inference_datapath, random_image[0]), run_id = run_id)
-        inference_time = time.time() - start_time
+    if run_id is None:
+        raise Exception("No model in production")
 
-        # convert prediction to json for data insertion
-        boxes_json =  json.dumps(result[0]["boxes"].tolist())
-        masks_json =  json.dumps(result[0]["masks"].tolist())
-        labels_json =  json.dumps(result[0]["labels"].tolist())
-        scores_json =  json.dumps(result[0]["scores"].tolist())
+    # record cpu and gpu usage before prediction
+    cpu_usage_before = psutil.cpu_percent()
+    gpu_before = GPUtil.getGPUs()
+    gpu_usage_before = [(gpu.id, gpu.memoryUtil) for gpu in gpu_before]
 
-        # combine into a single dictionary
-        combined_data = {
-            "boxes": boxes_json,
-            "masks": masks_json,
-            "labels": labels_json,
-            "scores": scores_json
-        }
+    print("Before prediction:")
+    print(f"Memory Allocated: {torch.cuda.memory_allocated(device)} bytes")
+    print(f"Memory Reserved: {torch.cuda.memory_reserved(device)} bytes")
 
-        insert_data(image_name = image_name, image_base64 = image_metadata["image_base64"], 
-            image_metadata = {k: v for k, v in image_metadata.items() if k != 'image_base64'},
-            inference_time = inference_time, prediction_result = combined_data
-        )
+    start_time = time.time()
+    result = predict_image(image_path = os.path.join(inference_datapath, random_image[0]), run_id = run_id)
+    inference_time = time.time() - start_time
+
+    # record CPU and GPU usage after prediction
+    cpu_usage_after = psutil.cpu_percent()
+    gpu_after = GPUtil.getGPUs()
+    gpu_usage_after = [(gpu.id, gpu.memoryUtil) for gpu in gpu_after]
+
+    print("\nAfter prediction:")
+    print(f"Memory Allocated: {torch.cuda.memory_allocated(device)} bytes")
+    print(f"Memory Reserved: {torch.cuda.memory_reserved(device)} bytes")
+
+    # convert prediction to json for data insertion
+    boxes_json =  json.dumps(result[0]["boxes"].tolist())
+    masks_json =  json.dumps(result[0]["masks"].tolist())
+    labels_json =  json.dumps(result[0]["labels"].tolist())
+    scores_json =  json.dumps(result[0]["scores"].tolist())
+
+    # combine into a single dictionary
+    combined_data = {
+        "boxes": boxes_json,
+        "masks": masks_json,
+        "labels": labels_json,
+        "scores": scores_json
+    }
+
+    # calculate the difference in usage
+    cpu_usage_diff = cpu_usage_after - cpu_usage_before
+    gpu_usage_diff = [(gpu[0], gpu[1] - dict(gpu_usage_before).get(gpu[0], 0)) for gpu in gpu_usage_after]
+
+    final_cpu_usage = np.round(cpu_usage_diff, 3)
+    final_cpu_usage = 0 if final_cpu_usage < 0 else final_cpu_usage
+    final_gpu_usage = np.round(gpu_usage_diff[0][1], 3)
+
+    insert_data(image_name = image_name, image_base64 = image_metadata["image_base64"], 
+        image_metadata = {k: v for k, v in image_metadata.items() if k != 'image_base64'},
+        inference_time = inference_time, prediction_result = combined_data,
+        cpu_usage = final_cpu_usage, gpu_usage = final_gpu_usage
+    )
+
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        print("\nAfter clearing cache:")
+        print(f"Memory Allocated: {torch.cuda.memory_allocated(device)} bytes")
+        print(f"Memory Reserved: {torch.cuda.memory_reserved(device)} bytes")
 
 if __name__ == '__main__':
     initialize()
