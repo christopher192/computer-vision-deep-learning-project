@@ -11,3 +11,4 @@ model_checkpoint
 **/mlruns/
 mlflow.db
 data
+PaddleOCR
