@@ -15,6 +15,12 @@ Basic Concept (Confusion Matrix)
 
 Threshold is usually set to 50%, 75% or 95%.
 
+### Precision
+Precision = TP/ (TP + FP) = TP/ All Detection
+
+### Recall
+Recall = TP/ (TP + FN) = TP/ All Ground Truth
+
 Precision, Recall, Average Precision (AP), and Mean Average Precision (mAP), IoU Threshold, Confidence Score, Precision-Recall Curve
 
 ## <ins>Reference</ins>
