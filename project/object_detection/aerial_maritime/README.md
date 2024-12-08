@@ -1,8 +1,18 @@
 # Object Detection (PyTorch)
 
 ## <ins>Introduction</ins>
+This project was solely dedicated to evaluating the performance of a two-stage object detection model built using PyTorch, with a focus on evaluation metrics such as precision, recall, and mean Average Precision (mAP), etc. The dataset used for this project, available at [Roboflow Aerial Maritime Dataset](https://universe.roboflow.com/jacob-solawetz/aerial-maritime), was intentionally kept small to expedite development and testing. This dataset contains 74 images of aerial maritime, consisting of `moveable-objects`, `lift`, `dock`, `boat`, `jetski`, and `car`.
 
 ## <ins>Evaluation Metric</ins>
+### Validation/ Training Loss
+Validation and training loss are key metrics to monitor during training.
+- Training Loss: Measures how well the model learns from training data.
+- Validation Loss: Assesses how well the model generalizes to unseen data.
+
+If training loss decreases while validation loss increases, the model is `overfitting`. If both remain high, the model is `underfitting`. Monitoring these helps ensure balanced learning and generalization.
+
+However, `torchvision` framework do not directly compute or produce validation loss during training. To address this, custom functions and tweaks to the code are implemented. For reference, this [StackOverflow](https://stackoverflow.com/questions/71288513/how-can-i-determine-validation-loss-for-faster-rcnn-pytorch) thread provides guidance on computing validation loss for Faster R-CNN in PyTorch.
+
 ### Intersection Over Union (IoU)
 ![](image/iou.png)
 <br>Measurement based on Jaccard Index, is used to measure the overlap between two bounding boxes, typically a ground truth bounding box and a predicted bounding box. By calculating the IoU, we can determine whether a detection is valid (True Positive) or invalid (False Positive).
@@ -119,6 +129,10 @@ Interpolating All Points Calculation
 
     ![](image/map_example.png)
 
+### Mean Average Precision (mAP) Implementation
+1.  `pycocotools` is used for mAP evaluation. For reference, check this [training sample](https://github.com/pytorch/vision/tree/main/references/detection) from the PyTorch repository.
+2. `ultralytics` evaluation metric, commonly used in YOLO, has been implemented in this project. For more details, refer this [sample](https://github.com/ultralytics/ultralytics/blob/118edde3baf7c71e4b1765282be7ce1625699b7f/ultralytics/utils/metrics.py).
+
 ### Confusion Matrix
 The `ConfusionMatrix` class has been referenced from the Ultralytics repository, an open-source implementation available on their GitHub page under the `ultralytics/utils/metrics.py` file. As the repository is a well-known and reliable source in the deep learning community, the implementation is efficient and suitable for this project. 
 
@@ -135,8 +149,15 @@ Before the IoU and class matching operations are performed, confidence score is 
 
 ## <ins>Result</ins>
 <p float="left">
+    <img src="result/2024-04-18_10-54-14/loss_plot.png" width="45%" />
+</p>
+
+Based on the `validation loss` and `training loss` data, . 
+
+<p float="left">
     <img src="result/2024-04-18_10-54-14/PR_curve.png" width="45%" />
 </p>
+
 Based on the `precision recall curve`, average precision (AP) for different object classes at an IoU threshold of 0.5 (mAP0.5). 
 
 1. Boat (0.171): The model has a relatively low average precision for detecting boats, meaning the model's detections for boats tend to have a low overlap with the ground truth boxes (IoU ≥ 0.5).
