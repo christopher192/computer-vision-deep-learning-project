@@ -3,6 +3,20 @@
 ## <ins>Introduction</ins>
 This project was solely dedicated to evaluating the performance of a two-stage object detection model built using PyTorch, with a focus on evaluation metrics such as precision, recall, and mean Average Precision (mAP), etc. The dataset used for this project, available at [Roboflow Aerial Maritime Dataset](https://universe.roboflow.com/jacob-solawetz/aerial-maritime), was intentionally kept small to expedite development and testing. This dataset contains 74 images of aerial maritime, consisting of `moveable-objects`, `lift`, `dock`, `boat`, `jetski`, and `car`.
 
+## <ins>Model (Faster RCNN) Components Explanation</ins>
+1. `GeneralizedRCNNTransform`: Preprocessing layer to normalize and resize the input.
+2. `BackboneWithFPN` (Feature Pyramid Network): Backbone network for feature extraction, with different layers (conv1, layer1, layer2, etc.) producing hierarchical feature maps. `FPN` is a technique designed to enhance object detection by improving the ability to detect objects at multiple scales, for detecting both small and large objects in an image.
+3. `RegionProposalNetwork` (RPN): Generates region proposals to localize potential objects (set of bounding boxes that are likely to contain objects).
+4. `RoIHeads`: Processes the region proposals using multi-scale RoI (Region of Interest) alignment, followed by a Fast-RCNN head for final classification and bounding box prediction. Multi-scale RoI alignment is a technique used in object detection to improve the accuracy of detecting objects at different sizes. It works by extracting features from multiple levels of a feature pyramid, ensuring that smaller objects use higher resolution features and larger objects use lower resolution features.
+
+Summary of Flow<br>
+Input Image → Preprocessing (GeneralizedRCNNTransform) → Feature Extraction (BackboneWithFPN) → Region Proposal (RPN) → RoI Alignment and Classification (RoIHeads) → Final Predictions (Classification & Bounding Box).
+
+## <ins>Model Selection</ins>
+In Torchvision, the available models and pretrained weights include `fasterrcnn_resnet50_fpn`, `fasterrcnn_resnet50_fpn_v2`, `fasterrcnn_mobilenet_v3_large_fpn`, and `fasterrcnn_mobilenet_v3_large_320_fpn`. However, `fasterrcnn_resnet50_fpn_v2` has been selected due to its improved performance and enhanced feature extraction capabilities.
+
+The transfer learning approach is `fine-tuning`, where the early layers (capturing general features) are frozen, and the later layers (capturing task-specific features) are unfrozen. `input layer`, `layer 1` and `layer 2` are frozen, the rest are unfrozen. This enables the model to retain useful knowledge from the pre-trained model while adapting to the specific task. For `feature extraction`, backbone will be frozen while `rpn head` and `roi head` will be unfrozen. 
+
 ## <ins>Evaluation Metric</ins>
 ### Validation/ Training Loss
 Validation and training loss are key metrics to monitor during training.
