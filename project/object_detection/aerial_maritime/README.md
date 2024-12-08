@@ -45,7 +45,7 @@ Recall = TP/ (TP + FN) = TP/ All Ground Truth
 Balance between precision and recall/ harmonic mean of precision and recall. Providing a balanced assessment of a model's performance while considering both false positives and false negatives.
 
 ### Precision Recall Curve
-Illustrates the trade-off between precision and recall as the confidence threshold for detecting objects is varied. Object detectors are often judged by their ability to achieve `high precision` (minimize false positives)/ achieve `high recall` (minimize false negatives). A model that reaches closer to the top-right corner is better
+Illustrates the trade-off between precision and recall as the confidence threshold for detecting objects is varied. Object detectors are often judged by their ability to achieve `high precision` (minimize false positives)/ achieve `high recall` (minimize false negatives). A model that reaches closer to the top-right corner is better.
 
 - Good object detector: Maintain high precision as recall increasing.
 - Poor object detector: Rapid drop in precision as recall increasing.
