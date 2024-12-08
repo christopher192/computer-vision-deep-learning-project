@@ -45,10 +45,23 @@ Recall = TP/ (TP + FN) = TP/ All Ground Truth
 Balance between precision and recall/ harmonic mean of precision and recall. Providing a balanced assessment of a model's performance while considering both false positives and false negatives.
 
 ### Precision Recall Curve
-Illustrates the trade-off between precision and recall as the confidence threshold for detecting objects is varied. Object detectors are often judged by their ability to achieve `high precision` (minimize false positives)/ achieve `high recall` (minimize false negatives).
+Illustrates the trade-off between precision and recall as the confidence threshold for detecting objects is varied. Object detectors are often judged by their ability to achieve `high precision` (minimize false positives)/ achieve `high recall` (minimize false negatives). A model that reaches closer to the top-right corner is better
 
 - Good object detector: Maintain high precision as recall increasing.
 - Poor object detector: Rapid drop in precision as recall increasing.
+
+### Recall-Confidence Curve
+Show the recall at various confidence thresholds, looking for high recall across the board. Example, `All classes 0.96 at 0.000` implies a 96% recall at the lowest confidence threshold, meaning the model captures most `true positives` but may also have many `false positives`.
+
+### Precision-Confidence Curve
+Display how precision changes with different confidence levels. Ideally, want high precision across all confidence levels. Example, `All classes 1 at 0.922` means perfect precision (100%) at a high confidence threshold of `0.922`, which is rare and might indicate overfitting.
+
+### F1 Confidence Curve
+F1 score (harmonic mean of precision and recall) at different confidence thresholds. A higher peak suggests better model performance. Example, `All classes 0.85 at 0.590` means that `confidence threshold` of `0.590`, the `F1-score` (which balances precision and recall) across all classes is `0.85`. This indicates that the model is achieving a good balance between precision and recall at this threshold. 
+
+By knowing the `confidence threshold`, filter the model's predictions based on how confident it is about them.
+- Higher threshold: Only predictions with a confidence score above the threshold will be considered positive (detected). This reduces `false positives` but may miss some `true positives` (lower recall).
+- Lower threshold: More predictions will be considered positive, increasing recall (more true positives detected), but this might also increase `false positives` (lower precision).
 
 ### Average Precision (AP)
 - Compute the area under the `precision-recall curve`, providing a single value that encapsulates the model's precision and recall performance. 
@@ -65,7 +78,7 @@ Extend the concept of AP by calculating the average `AP` values across `multiple
 
 ### Mean Average Precision 50-95 (mAP50-95)
 - Comprehensive measure of a model's performance in object detection, average the mean average precision (mAP) calculated at multiple IoU thresholds.
-- Example, 0.50, 0.55, 0.60, ..., 0.95.
+- 50% to 95% (at 5% steps). Example, 0.50, 0.55, 0.60, ..., 0.95.
 
 ### Step-by-Step Guide to Calculate Average Precision (AP)
 1. Gather Predictions and Ground Truths
@@ -152,7 +165,7 @@ Before the IoU and class matching operations are performed, confidence score is 
     <img src="result/2024-04-18_10-54-14/loss_plot.png" width="45%" />
 </p>
 
-Based on the `validation loss` and `training loss` data, . 
+Based on the `validation loss` and `training loss` data, the model is `overfitting` and `poor generalization` on unseen data. 
 
 <p float="left">
     <img src="result/2024-04-18_10-54-14/PR_curve.png" width="45%" />
@@ -185,7 +198,11 @@ When the ground truth is `background` (there is no object present, it is a backg
 
 If there is a `class` in the ground truth, but the model predicts it as `background`, this is a False Negative (FN).
 
+## <ins>Solution</ins>
+Given that there are only 72 images, increasing the dataset size by collecting more data will improve the model's ability to generalize. Once the dataset is expanded, then implement additional strategies to combat `overfitting`, such as increasing `regularization`, applying `early stopping`, leveraging `data augmentation`, utilizing `transfer learning`, adjusting the `learning rate scheduling`, using `cross-validation`, and `simplifying` the model, all of which will help enhance performance.
+
 ## <ins>Reference</ins>
 1. https://github.com/rafaelpadilla/Object-Detection-Metrics?tab=readme-ov-file
 2. https://docs.ultralytics.com/guides/yolo-performance-metrics/#interpretation-of-results
 3. https://github.com/ultralytics/ultralytics
+4. https://github.com/ultralytics/ultralytics/issues/7307
