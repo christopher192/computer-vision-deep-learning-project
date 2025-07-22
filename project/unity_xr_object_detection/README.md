@@ -57,8 +57,26 @@ https://docs.unity3d.com/6000.1/Documentation/ScriptReference/WebCamTexture.html
 ### TinyYOLOv2 ONNX Implementation in Python
 - Can review how `TinyYOLOv2` works in this notebook `tinyyolov2-8-onnx.ipynb`.
 
+### Required UI Component in Unity Hub
+| Component                | Description                                                                |
+| ------------------------ | -------------------------------------------------------------------------- |
+| **Canvas**               | Root UI container. Set **Render Mode** to `Screen Space - Overlay`.        |
+| **RawImage**             | Displays the live webcam feed (`WebCamTexture`).                           |
+| **Bounding Box Prefab**  | A `UI Panel` (RectTransform + Image) with a `TextMeshPro` child. Drag it from the Hierarchy into `Assets/Prefabs/` folder so at runtime, the script will clone (Instantiate) this prefab for each detected object. |
+| **BoundingBoxContainer** | An empty `RectTransform` (UI container) for dynamically adding boxes.      |
+
 ### Implementation
 The Unity implementation is primarily written in `TinyYoloDetector.cs` and consists of the following major components.
+
+YOLO Manager – 4 Required Parameters
+- Model Asset (NNModel)
+    - The TinyYOLOv2 ONNX model used for inference.
+- WebCam Display (RawImage)
+    - Shows the live camera feed.
+- Bounding Box Container (RectTransform)
+    - UI container to hold all detected bounding boxes.
+- Bounding Box Prefab (RectTransform)
+    - UI box prefab (with label) used to draw each detection.
 
 1. Webcam Input<br>
 Captures live video stream from the camera using `WebCamTexture` and displays it on a `RawImage`.
@@ -166,6 +184,9 @@ Currently filters to show only `person` class, but can be extended.
 ```
 if (labels[classIndex] == "person")
 ```
+
+### Result
+![alt text](<Screenshot 2025-07-21 154527.png>)
 
 ### Limitation
 - Only TinyYOLOv2 and TinyYOLOv3 are reliably supported by Unity Barracuda due to limited ONNX operator support
